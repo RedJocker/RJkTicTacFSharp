@@ -8,21 +8,24 @@ module Gui =
     open TicTac
 
 
-    type State = { game: Game }
-    let init () = { game = newGame X }
+    type State = { game: Game; input: string }
+    let init () = { game = newGame X; input = "" }
 
     type Msg =
         | Reset
+        | SetInput of string
         | Turn of Game
 
     let update (msg: Msg) (state: State) : State =
         match msg with
-        | Turn(game) -> { state with game = game }
+        | Turn(game) ->
+            { state with game = game; input = "" }
+        | SetInput input -> { state with input = input }
         | Reset -> init ()
 
     let view (state: State) (dispatch) =
         let game = state.game
-        printfn "AAAAA%O" game
+
 
         DockPanel.create
             [ DockPanel.children
@@ -105,13 +108,18 @@ module Gui =
                                           |> Turn
                                           |> dispatch
                                       | _ -> ()
-                                  | _ -> ()
+
+                                  | _ ->
+                                      input
+                                      |> SetInput
+                                      |> dispatch
 
                               ),
                               SubPatchOptions.OnChangeOf
                                   state.game
                           )
-                          TextBox.text ("")
+
+                          TextBox.text (string state.input)
                           TextBox.horizontalAlignment
                               HorizontalAlignment.Stretch ]
                     TextBlock.create
