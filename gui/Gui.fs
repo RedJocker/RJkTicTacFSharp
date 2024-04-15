@@ -31,14 +31,17 @@ module Gui =
             [ DockPanel.children
                   [ TextBox.create
                         [ TextBox.dock Dock.Bottom
+                          TextBox.text (string state.input)
                           TextBox.onTextChanged (
                               (fun input ->
                                   let updatedValue =
                                       try
                                           Some(
-                                              input.Split(
-                                                  ' '
-                                              )
+                                              input
+                                                  .Trim()
+                                                  .Split(
+                                                      ' '
+                                                  )
                                           )
                                       with _ ->
                                           None
@@ -89,10 +92,6 @@ module Gui =
                                                   ))
                                       |> Option.bind
                                           (fun (row, col) ->
-                                              printfn
-                                                  "%O"
-                                                  game
-
                                               turn
                                                   row
                                                   col
@@ -101,16 +100,22 @@ module Gui =
                                   match updatedValue with
                                   | Some game ->
                                       match game with
-                                      | { State = Playing _ }
-                                      | { State = Drawn _ }
-                                      | { State = Win _ } ->
+                                      | { State = Playing _ } ->
                                           game
                                           |> Turn
                                           |> dispatch
+                                      | { State = Drawn(_,
+                                                        p) }
+                                      | { State = Win(_, p) } ->
+                                          newGame (
+                                              playerPiece p
+                                          )
+                                          |> Turn
+                                          |> dispatch
                                       | _ -> ()
-
                                   | _ ->
-                                      input
+
+                                      string input
                                       |> SetInput
                                       |> dispatch
 
@@ -119,7 +124,7 @@ module Gui =
                                   state.game
                           )
 
-                          TextBox.text (string state.input)
+
                           TextBox.horizontalAlignment
                               HorizontalAlignment.Stretch ]
                     TextBlock.create
